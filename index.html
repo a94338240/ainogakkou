@@ -12,7 +12,6 @@
             --text-main: #1f2937;
             --text-sub: #6b7280;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -22,18 +21,15 @@
             display: flex;
             justify-content: center;
         }
-
         .container {
             width: 100%;
             max-width: 800px;
         }
-
         h1 {
             text-align: center;
             color: var(--text-main);
             margin-bottom: 30px;
         }
-
         details {
             background: white;
             border: 1px solid #e5e7eb;
@@ -42,7 +38,6 @@
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-
         summary {
             padding: 16px;
             background: #f9fafb;
@@ -54,28 +49,23 @@
             align-items: center;
             user-select: none;
         }
-
         summary:hover {
             background: #f3f4f6;
         }
-
         summary::after {
             content: '▼';
             font-size: 12px;
             transition: transform 0.2s;
             color: var(--text-sub);
         }
-
         details[open] summary::after {
             transform: rotate(180deg);
         }
-
         .content {
             padding: 16px;
             background: #ffffff;
             border-top: 1px solid #e5e7eb;
         }
-
         .audio-row {
             display: flex;
             align-items: center;
@@ -87,26 +77,21 @@
             background-color: #fff;
             transition: background 0.2s;
         }
-
         .audio-row:hover {
             background-color: #f9fafb;
         }
-
         .info-part {
             flex: 1;
         }
-
         .lbl {
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 4px;
         }
-
         .meta {
             font-size: 13px;
             color: var(--text-sub);
         }
-
         .play-btn {
             background-color: var(--primary-color);
             color: white;
@@ -121,15 +106,12 @@
             min-width: 100px;
             text-align: center;
         }
-
         .play-btn:active {
             transform: scale(0.95);
         }
-
         .play-btn.playing {
             background-color: var(--success-color);
         }
-
         #error-toast {
             position: fixed;
             bottom: 20px;
@@ -159,9 +141,7 @@
         <h1>音频资源列表</h1>
         <div id="audio-app"></div>
     </div>
-
     <div id="error-toast"></div>
-
     <script>
         const audioData = [
             {group: "《愛のがっこう01》", label: "<span class='zh-text'>感觉很像过时的相亲</span><br/><span class='jp-text'>昭和の　<span class='red-text'>見合いぶ？</span>　というか</span>", src: "a0.mp3", start:"00:04:12.9", duration: 2.000000},
@@ -175,7 +155,7 @@
         let activeBtn = null;
         function renderApp() {
             const appContainer = document.getElementById('audio-app');
-            const groupsMap = audioData.reduce((acc, item) => { // 按 group 分组数据
+            const groupsMap = audioData.reduce((acc, item) => { // groupでまとめる
                 if (!acc[item.group]) acc[item.group] = [];
                 acc[item.group].push(item);
                 return acc;
@@ -184,7 +164,7 @@
             const groupNames = Object.keys(groupsMap);
             let html = '';
             groupNames.forEach((groupName, index) => {
-                const isOpen = index === 0 ? 'open' : ''; //索引为 0 的添加 open 属性
+                const isOpen = index === 0 ? 'open' : ''; //indexが0項目にopenのみ付与
                 html += `
                     <details ${isOpen}>
                         <summary>${groupName} (${groupsMap[groupName].length})</summary>
@@ -193,7 +173,7 @@
                                 <div class="audio-row">
                                     <div class="info-part">
                                         <div class="lbl">${item.label}</div>
-                                        <div class="meta">長さ: ${formatSeconds(item.duration)}</div>
+                                        <div class="meta">offset: ${item.start}　長さ: ${formatSeconds(item.duration)}</div>
                                     </div>
                                     <button class="play-btn" onclick="handlePlay(this, '${item.src}')">再生</button>
                                 </div>
