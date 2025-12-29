@@ -13,155 +13,65 @@
             --text-sub: #6b7280;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .container {
-            width: 100%;
-            max-width: 800px;
-        }
-        h1 {
-            text-align: center;
-            color: var(--text-main);
-            margin-bottom: 30px;
-        }
-        details {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        summary {
-            padding: 16px;
-            background: #f9fafb;
-            cursor: pointer;
-            font-weight: bold;
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-        summary:hover {
-            background: #f3f4f6;
-        }
-        summary::after {
-            content: '▼';
-            font-size: 12px;
-            transition: transform 0.2s;
-            color: var(--text-sub);
-        }
-        details[open] summary::after {
-            transform: rotate(180deg);
-        }
-        .content {
-            padding: 16px;
-            background: #ffffff;
-            border-top: 1px solid #e5e7eb;
-        }
-        .audio-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            margin-bottom: 12px;
-            border: 1px solid #eee;
-            border-radius: 12px; 
-            background-color: #fff;
-            transition: background 0.2s;
-        }
-        .audio-row:hover {
-            background-color: #f9fafb;
-        }
-        .info-part {
-            flex: 1;
-        }
-        .lbl {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        .meta {
-            display: flex;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #faf7f0;
-            font-family: sans-serif;
-            font-size: 13px;
-            color: var(--text-sub);
-        }
-        .play-btn {
-            margin-left: auto;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            min-width: 100px;
-            text-align: center;
-        }
-        .play-btn:active {
-            transform: scale(0.95);
-        }
-        .play-btn.playing {
-            background-color: var(--success-color);
-        }
-        #error-toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ef4444;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            display: none;
-            z-index: 100;
-        }
-        .zh-text {
-            color: #0000cd;
-        }
-        .jp-text {
-            color: #006400;
-        }
-        .red-text {
-            color: #ff4d4f;
-            font-weight: bold;
-        }
+            /*font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;*/
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 10px 5px; display: flex; justify-content: center;}
+        .container {width: 100%; max-width: 800px;}
+        h1 {text-align: center; color: var(--text-main); margin-bottom: 6px; font-weight: 580;}
+        details {background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
+        summary {padding: 16px; background: #f9fafb; cursor: pointer; font-weight: bold; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none;}
+        summary:hover {background: #f3f4f6;}
+        summary::after {content: '▼'; font-size: 12px; transition: transform 0.2s; color: var(--text-sub);}
+        details[open] summary::after {transform: rotate(180deg);}
+        .content {padding: 16px; background: #ffffff; border-top: 1px solid #e5e7eb;}
+        .audio-row {display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-bottom: 12px; border: 1px solid #eee; border-radius: 12px; 
+            background-color: #fff; transition: background 0.2s;}
+        .audio-row:hover {background-color: #f9fafb;}
+        .info-part {flex: 1;}
+        .lbl {font-size: 16px; font-weight: 500; margin-bottom: 4px;}
+        .meta {display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #faf7f0; font-family: sans-serif; font-size: 13px; color: var(--text-sub); font-weight: 400;}
+        .play-btn {margin-left: auto; background-color: var(--primary-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;
+            font-weight: 500; transition: all 0.2s; min-width: 100px; text-align: center;}
+        .play-btn:active {transform: scale(0.95);}
+        .play-btn.playing {background-color: var(--success-color);}
+        #error-toast {position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 10px 20px; border-radius: 8px; display: none; z-index: 100;}
+        .zh-text {color: #87cefa; font-weight: 500;}
+        .jp-text {color: #006400; font-weight: 500;}
+        .st-new {color: #ff4d4f; font-weight: bold;}
+        .st-done {color: #8a2bff; font-weight: bold;}
+        .controls-top {display: flex; justify-content: center; align-items: center; margin-bottom: 20px; padding: 10px; background: white; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);}
+        .controls-top label {cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; user-select: none;}
     </style>
 </head>
 <body>
     <div class="container">
         <h1>聞き取れないリスト</h1>
+        <div class="controls-top">
+            <label><input type="checkbox" id="loop-toggle">ループで再生</label>　
+            <label><input type="checkbox" id="done-toggle">済も表示</label>
+        </div>
         <div id="audio-app"></div>
     </div>
     <div id="error-toast"></div>
     <script>
         const audioData = [
-            {group: "《愛のがっこう01》", label: "<span class='zh-text'>No.1 感觉很像过时的相亲</span><br/><span class='jp-text'>〔川原〕：父親同士の紹介で出会ったことは 周りには内緒にしませんか<br/>〔小川〕：どうしてですか<br/>〔川原〕：昭和の <span class='red-text'>見合いぶい？</span>というか　30半ばになるまで 相手を見つけられなくて親に泣きついたみたいじゃないですか</span>", src: "a01_0.mp3", start:"00:04:02.525", duration: 22.336000},
-            {group: "《愛のがっこう01》", label: "<span class='zh-text'>No.2 不过是个不听话又不讨喜的学生、干嘛为了她在夜晚的歌舞伎町奔走？</span><br/><span class='jp-text'>言うことも聞かず、<span class='red-text'>はわいげもない？</span>　生徒のために、なんで夜の歌舞伎町走らなければいけないのか</span>", src: "a01_1.mp3", start:"00:06:49", duration: 9.000000},
-            {group: "《愛のがっこう01》", label: "<span class='zh-text'>No.3 有学生经常出入牛郎店，盗刷家长的卡 金额高达100万日元</span><br/><span class='jp-text'>生徒がホストクラブに入り浸っている。 保護者のカードを使って <span class='red-text'>についた額？</span> 100万円</span>", src: "a01_2.mp3", start:"00:05:43.775", duration: 7.620000},
-            {group: "《愛のがっこう01》", label: "<span class='zh-text'>No.4 [カオル母]カオル酱<br/>[カオル寮友]我真的叫警察喔 好恐怖　碰到母老虎了　是我们的客人吗?<br/>[カオル]不是啦</span><br/><span class='jp-text'>[カオル母]カオルちゃん<br/>[カオル寮友]警察呼ぶって言ってるよ　怖っ怖っ　<span class='red-text'>きょぷはくなけ？</span>ばば　うちの客ですか?<br/>[カオル]ちげぇよ</span>", src: "a01_3.mp3", start:"00:17:18.775", duration: 7.785000},
-            {group: "《愛のがっこう01》", label: "<span class='zh-text'>No.5 现在关注度最高的新闻是？《议员宿舍遭裸男闯入》第一名，“牛郎遇刺”第二名　牛郎啊　一定又是钓鱼纠纷 没别的了</span><br/><span class='jp-text'>[百々子]で、何が一番跳ねてるんだっけ?<br/>[番組の人]議員宿舎に全男が侵入が1、ホスト刺されるが2ですね<br/>[百々子]ホストか、<span class='red-text'>掘っても？</span>金の話しか出てこないんだよな</span>", src: "a01_4.mp3", start:"00:18:22.275", duration: 11.670000},
-            {group: "《愛のがっこう04》", label: "<span class='zh-text'></span><br/><span class='jp-text'>まともない　<span class='red-text'>ぎょうしてる？</span>　ジョーカーも、裏には色々あるんじゃないかな</span>", src: "a04_5.mp3", start:"00:12:28", duration: 4.200000},
-            {group: "《愛のがっこう04》", label: "<span class='zh-text'></span><br/><span class='jp-text'><span class='red-text'>大人のめなよ？</span></span>", src: "a04_6.mp3", start:"00:12:42", duration: 2.000000},
-            {group: "《愛のがっこう04》", label: "<span class='zh-text'></span><br/><span class='jp-text'>悪いね　なんか　<span class='red-text'>じょちゅう？</span>　になっちゃって</span>", src: "a04_7.mp3", start:"00:12:50", duration: 2.000000},
+            {group: "《愛のがっこう01》", st:"done", label: "【No.1】<span class='zh-text'>感觉很像过时的相亲</span><br/><span class='jp-text'>〔川原〕：父親同士の紹介で出会ったことは 周りには内緒にしませんか<br/>〔小川〕：どうしてですか<br/>〔川原〕：昭和の <span class='st-done'>見合いぶい→見合いっぽい？</span>というか　30半ばになるまで 相手を見つけられなくて親に泣きついたみたいじゃないですか</span>", src: "a01_34268525e520c75a6824fafc3bec2eaa.mp3", start:"00:04:02.5", duration: 22.336},
+            {group: "《愛のがっこう01》", st:"done", label: "【No.2】<span class='zh-text'>不过是个不听话又不讨喜的学生、干嘛为了她在夜晚的歌舞伎町奔走？</span><br/><span class='jp-text'>言うことも聞かず、<span class='st-done'>はわいげもない→可愛げもない？</span>　生徒のために、なんで夜の歌舞伎町走らなければいけないのか</span>", src: "a01_6448c33a2b0904286c564979be1b34fa.mp3", start:"00:06:49", duration: 9.000},
+            {group: "《愛のがっこう01》", st:"done", label: "【No.3】<span class='zh-text'>有学生经常出入牛郎店，盗刷家长的卡 金额高达100万日元</span><br/><span class='jp-text'>生徒がホストクラブに入り浸っている。 保護者のカードを使って <span class='st-done'>についた→貢いだ？</span>額、100万円</span>", src: "a01_2b9048b89c21bbda8c143760f581e150.mp3", start:"00:05:43.7", duration: 7.620},
+            {group: "《愛のがっこう01》", st:"done", label: "【No.4】<span class='zh-text'>[カオル母]カオル酱<br/>[カオル寮友]我真的叫警察喔 好恐怖　碰到母老虎了　是我们的客人吗?<br/>[カオル]不是啦</span><br/><span class='jp-text'>[カオル母]カオルちゃん<br/>[カオル寮友・竹千代]警察呼ぶって言ってるよ　怖っ怖っ　<span class='st-done'>きょぷはくなけ？</span>ばば　うちの客ですか?<br/>[カオル]ちげぇよ</span>", src: "a01_e8eefdf9a9df8a7f37079bfeeb5d1e30.mp3", start:"00:17:18.7", duration: 7.785},
+            {group: "《愛のがっこう01》", st:"done", label: "【No.5】<span class='zh-text'>现在关注度最高的新闻是？《议员宿舍遭裸男闯入》第一名，“牛郎遇刺”第二名　牛郎啊　一定又是金钱纠纷 没别的了</span><br/><span class='jp-text'>[百々子]で、何が一番跳ねてるんだっけ?<br/>[番組の人]議員宿舎に全男が侵入が1、ホスト刺されるが2ですね<br/>[百々子]ホストか、<span class='st-done'>掘っても✓？</span>金の話しか出てこないんだよな</span>", src: "a01_e10d9b56122af13d5b64184ef88fdbaa.mp3", start:"00:18:22.2", duration: 11.670},
+            {group: "《愛のがっこう01》", st:"new", label: "【No.6】<span class='zh-text'>接着是第二名 业绩超过930万 是统御者 皇族裕翔　下个月继续加油</span><br/><span class='jp-text'>[司会]<span class='st-new'>ついでに？ つといて？</span>ナンバーツー、売り上げ930万オーバー <span class='st-new'>つめらげ ひらと しらぎ？</span>おめでとう<br/>[No2]Yeah あざっす<br/>[司会]Yeah おめでとう<br/>[社長]来月<span class='st-new'>もほしょほしい？</span>な</span>", src: "a01_8882f84dddfef5576331b9a3a76922d3.mp3", start:"00:21:27.9", duration: 18.980},
+            {group: "《愛のがっこう01》", st:"new", label: "【No.7】<span class='zh-text'>但是，我其实蛮开心的，你是个不爱说谎的人 这点很棒。 “好啊 就说是旅行认识的”欣然答应提议，我说不定会却步</span><br/><span class='jp-text'>でも、ちょっと嬉しかった。嘘をつくのが苦手な人でよかった。「はいはい、旅行で出会ったでいいんじゃない」って、<span class='st-new'>ノリ？盛り？折り？</span>で　いわれちゃったら、引いたかもしれない</span>", src: "a01_878c150fac6d7e8e066a51648b3b1c29.mp3", start:"00:28:10.9", duration: 14.720},
+            {group: "《愛のがっこう01》", st:"new", label: "【No.8】<span class='zh-text'>我是不是应该更用心穿搭和化妆？还是住你家的时候太邋遢了？嘴上没事，其实超爱吃醋，一定让你很喘不过来气吧？我一起确认你的行踪...哭着打给他无数次 告诉我我哪里做的不好，不管是什么，我都会改。 已超过录音长度限制</span><br/><span class='jp-text'>服とかメイクとかもっと気にしたほうがよかった？<br/>それとも泊まりにいた時、<span class='st-new'>かさつ 苛察？</span>だった？<br/>全然とか いい言いながら、<span class='st-new'>嫉妬うがいた？</span>の、重かったよね？<br/>しつこく行動確認したりとか、<何十回も泣きながら電話したり>、私に悪いところがあるなら言って、どんなことでも直すから<録音時間をオーバーしました></span>", src: "a01_efa14fa7abdd130e3cf6182e36511c65.mp3", start:"00:30:05.1", duration: 25.485},
+            {group: "《愛のがっこう04》", st:"done", label: "【No.501】<span class='zh-text'></span><br/><span class='jp-text'><span class='st-done'>まともない ぎょう→まともな営業？</span>してるジョーカーも、裏には色々あるんじゃないかな</span>", src: "a04_42ced1a430b638e1eaadd52b2f8786ce.mp3", start:"00:12:28", duration: 4.200},
+            {group: "《愛のがっこう04》", st:"done", label: "【No.502】<span class='zh-text'></span><br/><span class='jp-text'>大人<span class='st-done'>のめなよ→舐めなよ？</span></span>", src: "a04_17d5ce1ed34542747baff04f9a6d0c07.mp3", start:"00:12:42", duration: 2.000},
+            {group: "《愛のがっこう04》", st:"done", label: "【No.503】<span class='zh-text'></span><br/><span class='jp-text'>悪いね、なんか　<span class='st-done'>じょちゅう→途中？</span>　になっちゃって</span>", src: "a04_538d2004b44ff489b1fb26b6e4d7b3ef.mp3", start:"00:12:50", duration: 2.000},
         ];
 
         let currentAudio = null;
         let activeBtn = null;
         function renderApp() {
+            stopAll();
             const appContainer = document.getElementById('audio-app');
             const groupsMap = audioData.reduce((acc, item) => { // groupでまとめる
                 if (!acc[item.group]) acc[item.group] = [];
@@ -173,28 +83,41 @@
             let html = '';
             groupNames.forEach((groupName, index) => {
                 const isOpen = index === 0 ? 'open' : ''; //indexが0項目にopenのみ付与
-                html += `
-                    <details ${isOpen}>
-                        <summary>${groupName} (${groupsMap[groupName].length})</summary>
-                        <div class="content">
-                            ${groupsMap[groupName].map(item => `
-                                <div class="audio-row">
-                                    <div class="info-part">
-                                        <div class="lbl">${item.label}</div>
-                                        <div class="meta">
-                                            offset: ${item.start}　
-                                            長さ: ${formatSeconds(item.duration)}
-                                            <button class="play-btn" onclick="handlePlay(this, '${item.src}')">再生</button>
-                                        </div>
-                                    </div>
-                                    
-                                </div>
-                            `).join('')}
-                        </div>
-                    </details>
-                `;
+                var filteredList = groupsMap[groupName];
+                if(!document.getElementById('done-toggle').checked) filteredList = filteredList.filter(item => item.st === "new"); // done-toggleを☑したら、stが"new"の項目のみ表示
+                if(filteredList.length === 0) return;
+
+                html += '<details ' + isOpen + '>';
+                html +=     '<summary>' + groupName + ' (' + filteredList.length + ')</summary>';
+                html +=     '<div class="content">';
+                html += filteredList.map(function(item) {
+                    var innerHtml = '';
+                    innerHtml += '<div class="audio-row">';
+                    innerHtml +=     '<div class="info-part">';
+                    innerHtml +=         '<div class="lbl">' + item.label + '</div>';
+                    innerHtml +=         '<div class="meta">';
+                    innerHtml +=             'offset: ' + item.start + '　';
+                    innerHtml +=             '長さ: ' + formatSeconds(item.duration);
+                    innerHtml +=             '<button class="play-btn" onclick="handlePlay(this, \'' + item.src + '\')">再生</button>';
+                    innerHtml +=         '</div>';
+                    innerHtml +=     '</div>';
+                    innerHtml += '</div>';
+                    return innerHtml;
+                }).join('');
+
+                html +=     '</div>';
+                html += '</details>';
             });
             appContainer.innerHTML = html;
+        }
+        document.getElementById('loop-toggle').addEventListener('change', onLoopToggleChange);
+        function onLoopToggleChange(event) {
+            if(currentAudio) currentAudio.loop = event.target.checked;
+        }
+
+        document.getElementById('done-toggle').addEventListener('change', onDoneToggleChange);
+        function onDoneToggleChange(event) {
+            renderApp();
         }
 
         function handlePlay(btn, audioSrc) {
@@ -205,6 +128,10 @@
             stopAll();
 
             const audio = new Audio(audioSrc);
+            gCurAduio = audio;
+            const isLoop = document.getElementById('loop-toggle').checked;
+            audio.loop = isLoop; 
+
             currentAudio = audio;
             activeBtn = btn;
             audio.onplay = () => {
@@ -213,11 +140,13 @@
             };
 
             audio.onpause = audio.onended = () => {
-                btn.classList.remove('playing');
-                btn.innerText = '再生';
-                if (activeBtn === btn) {
-                    activeBtn = null;
-                    currentAudio = null;
+                if (!audio.loop || audio.paused) {
+                    btn.classList.remove('playing');
+                    btn.innerText = '再生';
+                    if (activeBtn === btn) {
+                        activeBtn = null;
+                        currentAudio = null;
+                    }
                 }
             };
 
@@ -229,6 +158,7 @@
 
         function stopAll() {
             if (currentAudio) {
+                currentAudio.loop = false; // 強制的にループを取り消し
                 currentAudio.pause();
                 currentAudio = null;
             }
@@ -256,4 +186,3 @@
     </script>
 </body>
 </html>
-    
