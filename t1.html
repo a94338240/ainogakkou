@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Web录音</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; }
+        .controls { margin-bottom: 20px; }
+        button { padding: 10px 20px; cursor: pointer; margin: 0 5px; }
+        #status { color: #666; margin-top: 10px; }
+        audio { margin-top: 20px; display: none; }
+        .db-info { margin-top: 20px; font-size: 12px; color: #999; }
+    </style>
+</head>
+<body>
+
+    <h2>音频录制 (本地DB + GitHub上传)</h2>
+
+    <div class="controls">
+        <button id="startBtn">开始录音</button>
+        <button id="stopBtn" disabled>停止录音</button>
+        <button id="uploadBtn" disabled>上传到 GitHub</button>
+    </div>
+
+    <div id="status">准备就绪</div>
+    <audio id="audioPlayback" controls></audio>
+    <div class="db-info" id="dbStatus">本地数据库未初始化</div>
+
+    <script>
+        // --- 1. IndexedDB 封装逻辑 ---
+        class MyStorage {
+            constructor() {
+                this.dbName = "ShadowingApp";
+                this.db = null;
+            }
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, 1);
+                    request.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('audios')) {
+                            db.createObjectStore('audios', { keyPath: 'id' });
+                        }
+                    };
+                    request.onsuccess = (e) => { this.db = e.target.result; resolve(); };
+                    request.onerror = () => reject("DB Open Error");
+                });
+            }
+            async saveAudio(id, blob) {
+                const tx = this.db.transaction(['audios'], 'readwrite');
+                const store = tx.objectStore('audios');
+                return new Promise(resolve => {
+                    store.put({ id, data: blob, timestamp: Date.now() });
+                    tx.oncomplete = () => resolve();
+                });
+            }
+        }
+
+        const db = new MyStorage();
+        db.init().then(() => {
+            document.getElementById('dbStatus').innerText = "本地数据库已就绪 (IndexedDB)";
+        });
+
+        // --- 2. GitHub 配置 ---
+        const GITHUB_CONFIG = {
+            token: '你的_GITHUB_TOKEN',
+            owner: '你的_用户名',
+            repo: '你的_仓库名',
+            branch: 'main'
+        };
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const status = document.getElementById('status');
+        const audioPlayback = document.getElementById('audioPlayback');
+
+        // 开始录音
+        startBtn.onclick = async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => audioChunks.push(event.data);
+
+            mediaRecorder.onstop = async () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                
+                // --- 修改部分：同时保存到本地数据库 ---
+                const localId = `rec_${Date.now()}`;
+                status.innerText = "正在保存到本地...";
+                await db.saveAudio(localId, audioBlob);
+                
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audioPlayback.src = audioUrl;
+                audioPlayback.style.display = 'block';
+                uploadBtn.disabled = false;
+                status.innerText = `本地已保存 (${localId})，现在可以上传 GitHub。`;
+            };
+
+            mediaRecorder.start();
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            status.innerText = "正在录音...";
+        };
+
+        // 停止录音
+        stopBtn.onclick = () => {
+            mediaRecorder.stop();
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        };
+
+        // 上传 GitHub
+        uploadBtn.onclick = async () => {
+            status.innerText = "正在转换并上传 GitHub...";
+            uploadBtn.disabled = true;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = async () => {
+                const base64Data = reader.result.split(',')[1];
+                const fileName = `recordings/rec_${Date.now()}.webm`;
+                const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${fileName}`;
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${GITHUB_CONFIG.token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: `Upload: ${fileName}`,
+                            content: base64Data,
+                            branch: GITHUB_CONFIG.branch
+                        })
+                    });
+
+                    if (response.ok) {
+                        status.innerText = "GitHub 上传成功！文件名：" + fileName;
+                    } else {
+                        const err = await response.json();
+                        status.innerText = "GitHub 上传失败：" + err.message;
+                        uploadBtn.disabled = false;
+                    }
+                } catch (e) {
+                    status.innerText = "请求错误：" + e;
+                    uploadBtn.disabled = false;
+                }
+            };
+        };
+    </script>
+</body>
+</html>
