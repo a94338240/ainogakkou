@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <!--meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.github.com;"-->
     <title>Web录音</title>
     <style>
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding-top: 50px; }
@@ -13,9 +14,7 @@
     </style>
 </head>
 <body>
-
     <h2>音频录制 (本地DB + GitHub上传)</h2>
-
     <div class="controls">
         <button id="startBtn">开始录音</button>
         <button id="stopBtn" disabled>停止录音</button>
@@ -63,11 +62,12 @@
 
         // --- 2. GitHub 配置 ---
         const GITHUB_CONFIG = {
-            token: '你的_GITHUB_TOKEN',
-            owner: '你的_用户名',
-            repo: '你的_仓库名',
+            token: '',
+            owner: 'a94338240',
+            repo: 'ghp_storage',
             branch: 'main'
         };
+        
 
         let mediaRecorder;
         let audioChunks = [];
@@ -78,17 +78,41 @@
         const uploadBtn = document.getElementById('uploadBtn');
         const status = document.getElementById('status');
         const audioPlayback = document.getElementById('audioPlayback');
+        let actualMimeType = ''; // 全局或上下文变量
 
-        // 开始录音
+        function getSupportedMimeType() {
+            const types = [
+                'audio/webm;codecs=opus', // Chrome/Android 首选
+                'audio/mp4',              // iOS/Safari 首选
+                'audio/ogg;codecs=opus',  // Firefox 首选
+                'audio/webm', 'audio/aac'
+            ];
+            for (const type of types) {
+                if (MediaRecorder.isTypeSupported(type)) {
+                    return type;
+                }
+            }
+            return ''; // 都不支持（极旧的设备）
+        }
         startBtn.onclick = async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+            //const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    sampleRate: 44100, // 或者是 48000   iOS 在录制 audio/mp4 时，默认采样率通常很高。 如果发现iOS录音偏快或偏慢，可以试着显式要求采样率
+                    channelCount: 1    // 单声道通常足够且体积小
+                }
+            });
+
+            actualMimeType = getSupportedMimeType(); //must be call in user click proc, ios!    待放入初期化 todo
+            mediaRecorder = new MediaRecorder(stream, { mimeType: actualMimeType });
+            
             audioChunks = [];
 
             mediaRecorder.ondataavailable = (event) => audioChunks.push(event.data);
 
             mediaRecorder.onstop = async () => {
-                audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+//                audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                audioBlob = new Blob(audioChunks, { type: actualMimeType });
                 
                 // --- 修改部分：同时保存到本地数据库 ---
                 const localId = `rec_${Date.now()}`;
@@ -123,15 +147,28 @@
             const reader = new FileReader();
             reader.readAsDataURL(audioBlob);
             reader.onloadend = async () => {
+                const userInput = window.prompt("token:", "");
+                if (userInput !== null && userInput !== "") {
+                    console.log("用户输入了: " + userInput); // 在这里执行保存逻辑，例如存入 IndexedDB
+                } else {
+                    console.log("用户取消了输入或输入为空");
+                    return;
+                }
+                
                 const base64Data = reader.result.split(',')[1];
-                const fileName = `recordings/rec_${Date.now()}.webm`;
+                
+                const extension = actualMimeType.includes('mp4') ? '.mp4' : '.webm';
+                //const fileName = `recordings/rec_${Date.now()}.webm`;
+                const fileName = `recordings/rec_${Date.now()}${extension}`;
+
                 const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${fileName}`;
 
                 try {
                     const response = await fetch(url, {
                         method: 'PUT',
                         headers: {
-                            'Authorization': `token ${GITHUB_CONFIG.token}`,
+                            //'Authorization': `token ${GITHUB_CONFIG.token}`,
+                            'Authorization': `token ${userInput}`,
                             'Accept': 'application/vnd.github.v3+json',
                             'Content-Type': 'application/json'
                         },
@@ -141,6 +178,7 @@
                             branch: GITHUB_CONFIG.branch
                         })
                     });
+                    userInput = ''; //clear 
 
                     if (response.ok) {
                         status.innerText = "GitHub 上传成功！文件名：" + fileName;
