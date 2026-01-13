@@ -1,52 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>加密存储：Shadowing Recorder</title>
-    <style>
-        /* 复用之前的 UI 样式，保持移动端友好 */
-        :root { --primary: #007AFF; --danger: #FF3B30; --bg: #F2F2F7; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .controls { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; max-width: 400px; }
-        button { padding: 18px; font-size: 18px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: white; color: var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        button:active { transform: scale(0.98); }
-        button:disabled { background: #D1D1D6; color: #8E8E93; }
-        #startBtn { background: var(--primary); color: white; }
-        #stopBtn { background: var(--danger); color: white; }
-        #status { margin-top: 20px; font-size: 14px; color: #636366; text-align: center; white-space: pre-line; }
-        audio { margin-top: 25px; width: 100%; max-width: 400px; display: none; }
-        dialog { border: none; border-radius: 15px; padding: 25px; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        dialog input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #C7C7CC; border-radius: 8px; box-sizing: border-box; }
-    </style>
-</head>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>n0</title></head>
 <body>
+<script>
+    async function l(k) {
+        a = k.split('|');
+        const o = {}
+        o[a[0]] = {}
+        o[a[0]][a[1]] = a[2]
+        const res = await fetch(a[3], o);
+        if (!res.ok) throw new Error('net error');
+        const json = await res.json();
+        const code = decodeURIComponent(escape(atob(json.content)));
+        const dJ = document.createElement('script');
+        dJ.text = code;
+        document.head.appendChild(dJ);
+        console.log("init0 done.");
+    }
 
-    <h2>安全录制助手</h2>
-
-    <div class="controls">
-        <button id="startBtn">🔴 开始录制</button>
-        <button id="stopBtn" disabled>⏹️ 停止并加密保存</button>
-        <button id="uploadBtn" disabled>☁️ 解密并上传 GitHub</button>
-        <button id="configBtn" style="font-size: 14px; background: transparent; box-shadow: none;">⚙️ 配置 GitHub (加密存)</button>
-    </div>
-
-    <div id="status">正在初始化安全环境...</div>
-    <audio id="audioPlayback" controls></audio>
-
-    <dialog id="tokenDialog">
-        <strong>GitHub 安全配置</strong>
-        <input type="password" id="tokenInput" placeholder="GitHub Token (ghp_...)">
-        <input type="text" id="repoInput" placeholder="用户名/仓库名">
-        <input type="password" id="masterPwdInput" placeholder="设置主密码 (用于加密存储)">
-        <p style="font-size: 11px; color: #666;">* 此密码不上传，仅在本地解密 Token 时使用</p>
-        <div style="display: flex; gap: 10px;">
-            <button onclick="this.closest('dialog').close()" style="flex:1; font-size:14px; padding:10px;">取消</button>
-            <button id="saveConfigBtn" style="flex:1; font-size:14px; padding:10px; background:var(--primary); color:white;">保存</button>
-        </div>
-    </dialog>
-
-    <script src="a.js">
-    </script>
-</body>
-</html>
+    const uIn = window.prompt("key please:", "");
+    if (uIn !== null && uIn !== "") {
+        l(uIn);
+    } else {
+        console.log("input null(user canceled)");
+    }
+</script>
+</body></html>
