@@ -5,10 +5,7 @@
 <script>
     async function l(k) {
         a = k.split('|');
-        const o = {}
-        o[a[0]] = {}
-        o[a[0]][a[1]] = a[2]
-        const res = await fetch(a[3], o);
+        const res = await fetch(a[3], {[a[0]]: {[a[1]]: a[2]}});
         if (!res.ok) throw new Error('net error');
         const json = await res.json();
         const code = decodeURIComponent(escape(atob(json.content)));
