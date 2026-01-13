@@ -2,206 +2,51 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!--meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.github.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"-->
-    <title>Shadowing Web Recorder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密存储：Shadowing Recorder</title>
     <style>
+        /* 复用之前的 UI 样式，保持移动端友好 */
         :root { --primary: #007AFF; --danger: #FF3B30; --bg: #F2F2F7; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        h2 { color: #1C1C1E; margin-bottom: 30px; }
-        
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .controls { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; max-width: 400px; }
-        
-        /* 移动端适配按钮：更大、更有质感 */
-        button { 
-            padding: 18px; font-size: 18px; font-weight: 600; border: none; border-radius: 12px; 
-            cursor: pointer; transition: all 0.2s; background: white; color: var(--primary);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        button:active { transform: scale(0.98); opacity: 0.8; }
-        button:disabled { background: #D1D1D6; color: #8E8E93; transform: none; box-shadow: none; }
-        
+        button { padding: 18px; font-size: 18px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: white; color: var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #D1D1D6; color: #8E8E93; }
         #startBtn { background: var(--primary); color: white; }
         #stopBtn { background: var(--danger); color: white; }
-        #uploadBtn { border: 2px solid var(--primary); }
-
-        #status { margin-top: 20px; font-size: 14px; color: #636366; text-align: center; line-height: 1.5; }
-        audio { margin-top: 25px; width: 100%; max-width: 400px; border-radius: 8px; display: none; }
-        
-        /* 隐藏的 Token 输入对话框 */
-        dialog { border: none; border-radius: 15px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 80%; max-width: 320px; }
-        dialog::backdrop { background: rgba(0,0,0,0.5); }
-        dialog input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #C7C7CC; border-radius: 8px; box-sizing: border-box; }
+        #status { margin-top: 20px; font-size: 14px; color: #636366; text-align: center; white-space: pre-line; }
+        audio { margin-top: 25px; width: 100%; max-width: 400px; display: none; }
+        dialog { border: none; border-radius: 15px; padding: 25px; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        dialog input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #C7C7CC; border-radius: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <h2>跟读录音助手</h2>
+    <h2>安全录制助手</h2>
 
     <div class="controls">
         <button id="startBtn">🔴 开始录制</button>
-        <button id="stopBtn" disabled>⏹️ 停止并保存</button>
-        <button id="uploadBtn" disabled>☁️ 上传到 GitHub</button>
-        <button id="configBtn" style="font-size: 14px; background: transparent; box-shadow: none;">⚙️ 设置 Token</button>
+        <button id="stopBtn" disabled>⏹️ 停止并加密保存</button>
+        <button id="uploadBtn" disabled>☁️ 解密并上传 GitHub</button>
+        <button id="configBtn" style="font-size: 14px; background: transparent; box-shadow: none;">⚙️ 配置 GitHub (加密存)</button>
     </div>
 
-    <div id="status">点击“开始”允许麦克风访问</div>
+    <div id="status">正在初始化安全环境...</div>
     <audio id="audioPlayback" controls></audio>
 
     <dialog id="tokenDialog">
-        <strong style="display:block; text-align:center;">GitHub 设置</strong>
-        <input type="password" id="tokenInput" placeholder="输入 GitHub Token (ghp_...)">
-        <input type="text" id="repoInput" placeholder="用户名/仓库名 (例如: user/repo)">
+        <strong>GitHub 安全配置</strong>
+        <input type="password" id="tokenInput" placeholder="GitHub Token (ghp_...)">
+        <input type="text" id="repoInput" placeholder="用户名/仓库名">
+        <input type="password" id="masterPwdInput" placeholder="设置主密码 (用于加密存储)">
+        <p style="font-size: 11px; color: #666;">* 此密码不上传，仅在本地解密 Token 时使用</p>
         <div style="display: flex; gap: 10px;">
-            <button onclick="document.getElementById('tokenDialog').close()" style="flex:1; font-size:14px; padding:10px;">取消</button>
+            <button onclick="this.closest('dialog').close()" style="flex:1; font-size:14px; padding:10px;">取消</button>
             <button id="saveConfigBtn" style="flex:1; font-size:14px; padding:10px; background:var(--primary); color:white;">保存</button>
         </div>
     </dialog>
-    
 
-    <script>
-        async function loadPrivateScript(fileName) {
-            const GITHUB_TOKEN = '';
-            const owner = 'a9';
-            const repo = 'gs';
-            const url = `https://api.github.com/repos/${owner}/${repo}/contents/${fileName}`;
-
-            const res = await fetch(url, {
-                headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-            });
-            
-            const json = await res.json();
-            // GitHub API 返回的是 Base64 编码的内容
-            const code = decodeURIComponent(escape(atob(json.content)));
-
-            // 将代码插入页面
-            const script = document.createElement('script');
-            script.text = code;
-            document.head.appendChild(script);
-            console.log("私有脚本加载并执行完毕");
-        }
-
-        // --- 1. 跨平台 MimeType 探测 ---
-        function getSupportedMimeType() {
-            const types = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/aac'];
-            for (const type of types) {
-                if (MediaRecorder.isTypeSupported(type)) return type;
-            }
-            return '';
-        }
-
-        // --- 2. IndexedDB 持久化类 ---
-        class MyStorage {
-            constructor() { this.db = null; }
-            async init() {
-                return new Promise((res) => {
-                    const req = indexedDB.open("ShadowingApp", 1);
-                    req.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains('audios')) db.createObjectStore('audios', { keyPath: 'id' });
-                        if (!db.objectStoreNames.contains('config')) db.createObjectStore('config', { keyPath: 'key' });
-                    };
-                    req.onsuccess = (e) => { this.db = e.target.result; res(); };
-                });
-            }
-            async set(store, data) {
-                const tx = this.db.transaction([store], 'readwrite');
-                tx.objectStore(store).put(data);
-            }
-            async get(store, key) {
-                const tx = this.db.transaction([store], 'readonly');
-                const req = tx.objectStore(store).get(key);
-                return new Promise(res => req.onsuccess = () => res(req.result));
-            }
-        }
-
-        // --- 3. 主逻辑 ---
-        const storage = new MyStorage();
-        let mediaRecorder, audioChunks = [], audioBlob, currentMimeType = '';
-
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const status = document.getElementById('status');
-        const audioPlayback = document.getElementById('audioPlayback');
-
-        (async () => {
-            await storage.init();
-            status.innerText = "设备就绪，可以开始录音";
-        })();
-
-        // 开始录音
-        startBtn.onclick = async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                currentMimeType = getSupportedMimeType();
-                mediaRecorder = new MediaRecorder(stream, { mimeType: currentMimeType });
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                mediaRecorder.onstop = async () => {
-                    audioBlob = new Blob(audioChunks, { type: currentMimeType });
-                    const id = `rec_${Date.now()}`;
-                    await storage.set('audios', { id, data: audioBlob });
-                    
-                    audioPlayback.src = URL.createObjectURL(audioBlob);
-                    audioPlayback.style.display = 'block';
-                    uploadBtn.disabled = false;
-                    status.innerText = `本地已存: ${id}\n格式: ${currentMimeType}`;
-                };
-
-                mediaRecorder.start();
-                startBtn.disabled = true; stopBtn.disabled = false; uploadBtn.disabled = true;
-                status.innerText = "正在录音... (建议不要超过30秒)";
-            } catch (err) {
-                status.innerText = "错误: 无法访问麦克风\n" + err;
-            }
-        };
-
-        // 停止录音
-        stopBtn.onclick = () => {
-            mediaRecorder.stop();
-            startBtn.disabled = false; stopBtn.disabled = true;
-        };
-
-        // 上传 GitHub
-        uploadBtn.onclick = async () => {
-            const tokenCfg = await storage.get('config', 'gh_token');
-            const repoCfg = await storage.get('config', 'gh_repo');
-            if (!tokenCfg || !repoCfg) return alert("请先点击设置配置 GitHub Token 和 仓库名");
-
-            status.innerText = "正在准备上传...";
-            uploadBtn.disabled = true;
-
-            const reader = new FileReader();
-            reader.readAsDataURL(audioBlob);
-            reader.onloadend = async () => {
-                const base64 = reader.result.split(',')[1];
-                const ext = currentMimeType.includes('mp4') ? '.mp4' : '.webm';
-                const path = `recordings/rec_${Date.now()}${ext}`;
-                
-                try {
-                    const res = await fetch(`https://api.github.com/repos/${repoCfg.value}/contents/${path}`, {
-                        method: 'PUT',
-                        headers: { 'Authorization': `token ${tokenCfg.value}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: `Upload recording`, content: base64 })
-                    });
-                    status.innerText = res.ok ? "🎉 上传成功！" : "❌ 上传失败: " + (await res.json()).message;
-                } catch (e) { status.innerText = "网络错误: " + e; }
-                uploadBtn.disabled = false;
-            };
-        };
-
-        // 配置管理
-        document.getElementById('configBtn').onclick = () => document.getElementById('tokenDialog').showModal();
-        document.getElementById('saveConfigBtn').onclick = async () => {
-            const t = document.getElementById('tokenInput').value;
-            const r = document.getElementById('repoInput').value;
-            if (t) await storage.set('config', { key: 'gh_token', value: t });
-            if (r) await storage.set('config', { key: 'gh_repo', value: r });
-            document.getElementById('tokenDialog').close();
-            status.innerText = "配置已保存";
-        };
+    <script src="a.js">
     </script>
 </body>
 </html>
