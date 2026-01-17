@@ -4,22 +4,29 @@
 <body>
 <script>
     async function l(k) {
-        a = k.split('|');
-        const res = await fetch(a[3], {[a[0]]: {[a[1]]: a[2]}});
-        if (!res.ok) throw new Error('net error');
-        const json = await res.json();
-        const code = decodeURIComponent(escape(atob(json.content)));
-        const dJ = document.createElement('script');
-        dJ.text = code;
-        document.head.appendChild(dJ);
-        console.log("init0 done.");
+        try {
+            a = k.split('|');
+            const res = await fetch(a[3], {[a[0]]: {[a[1]]: a[2]}});
+            if (!res.ok) throw new Error('net error');
+            const json = await res.json();
+            const code = decodeURIComponent(escape(atob(json.content)));
+            const dJ = document.createElement('script');
+            dJ.text = code;
+            document.head.appendChild(dJ);
+            console.log("init0 done.");
+        } catch (e) {
+            alert('err:' + e.message);
+        }
     }
-
-    const uIn = window.prompt("key please:", "");
-    if (uIn !== null && uIn !== "") {
+    (async () => {
+        const uIn = window.prompt("key please:", "");
+        if (uIn == null || uIn == "") {
+            console.log("input null(user canceled)");
+            return;
+        }
         l(uIn);
-    } else {
-        console.log("input null(user canceled)");
-    }
+    })();
+    
+    
 </script>
 </body></html>
