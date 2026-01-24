@@ -3,6 +3,40 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>n0</title></head>
 <body>
 <script>
+class s {
+    constructor() { 
+        this.db = null; 
+    }
+    async init() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open('a', 1);
+            req.onsuccess = e => {
+                this.db = e.target.result;
+                resolve(this.db);
+            };
+            req.onerror = e => {
+                console.error(e.target.error);
+                reject('ohno');
+            };
+
+            req.onblocked = () => {
+                alert("close this site's other tab!");
+            };
+        });
+    }
+    async get(store, key) {
+        return new Promise((resolve, reject) => {
+            try {
+                const tx = this.db.transaction([store], 'readonly');
+                const req = tx.objectStore(store).get(key);
+                req.onsuccess = () => resolve(req.result.value);
+                req.onerror = (e) => reject(e.target.error);
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+}
     async function l(k) {
         try {
             a = k.split('|');
@@ -19,6 +53,12 @@
         }
     }
     (async () => {
+        let r = new s();
+        try {
+            return l(await r.get('b', 'c'));
+        } catch(e) {
+            console.log(e.message);
+        }
         const uIn = window.prompt("key please:", "");
         if (uIn == null || uIn == "") {
             console.log("input null(user canceled)");
