@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>n0</title></head>
-<body>
 <script>
 class s {
     constructor() { 
@@ -18,9 +17,12 @@ class s {
                 console.error(e.target.error);
                 reject('ohno');
             };
-
             req.onblocked = () => {
                 alert("close this site's other tab!");
+            };
+            req.onupgradeneeded = e => {
+                const db = e.target.result;
+                db.createObjectStore('b', {keyPath: 'key'});
             };
         });
     }
@@ -29,7 +31,13 @@ class s {
             try {
                 const tx = this.db.transaction([store], 'readonly');
                 const req = tx.objectStore(store).get(key);
-                req.onsuccess = () => resolve(req.result.value);
+                req.onsuccess = () => {
+                    if(!req.result) {
+                        reject('not found');
+                        return;
+                    }
+                    resolve(req.result.value);
+                };
                 req.onerror = (e) => reject(e.target.error);
             } catch (e) {
                 reject(e);
@@ -54,20 +62,18 @@ class s {
     }
     (async () => {
         try {
-            let r = new s();
+            r = new s();
             await r.init();
             return l(await r.get('b', 'c'));
         } catch(e) {
             console.log(e.message);
         }
-        const uIn = window.prompt("key please:", "");
+        uIn = window.prompt("k", "");
         if (uIn == null || uIn == "") {
             console.log("input null(user canceled)");
             return;
         }
         l(uIn);
     })();
-    
-    
 </script>
-</body></html>
+<body></body></html>
