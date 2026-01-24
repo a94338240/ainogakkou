@@ -53,8 +53,9 @@ class s {
         }
     }
     (async () => {
-        let r = new s();
         try {
+            let r = new s();
+            await r.init();
             return l(await r.get('b', 'c'));
         } catch(e) {
             console.log(e.message);
