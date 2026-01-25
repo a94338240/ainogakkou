@@ -55,7 +55,6 @@ class s {
             const dJ = document.createElement('script');
             dJ.text = code;
             document.head.appendChild(dJ);
-            console.log("init0 done.");
         } catch (e) {
             alert('err:' + e.message);
         }
@@ -70,7 +69,7 @@ class s {
         }
         uIn = window.prompt("k", "");
         if (uIn == null || uIn == "") {
-            console.log("input null(user canceled)");
+            console.log("input null(canceled)");
             return;
         }
         l(uIn);
