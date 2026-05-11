@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>n0</title><link rel="icon" href="favicon.ico"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="favicon.ico"></head>
 <script>
 class s {
     constructor() { 
@@ -48,7 +48,7 @@ class s {
 async function l(k) {
 	try {
 		a = k.split('|');
-		const res = await fetch(a[3], {[a[0]]: {[a[1]]: a[2]}});
+        const res = await fetch(`${a[3]}${a[3].includes('?') ? '&' : '?'}_t=${new Date().getTime()}`, {[a[0]]: {[a[1]]: a[2]}, cache: 'no-store'});
 		if (!res.ok) throw new Error('net error');
 		const json = await res.json();
 		const code = decodeURIComponent(escape(atob(json.content)));
