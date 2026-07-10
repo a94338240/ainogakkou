@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>assignment6</title>
+<style>
+    .myContainer {
+      display: flex;
+      align-items: center; /* 垂直方向（縦）の中央揃え */
+      padding: 10px;
+      background-color: rgb(238, 238, 238);
+      /* widthを設定してないけど、divデフォルト(display: blockと相当)で、画面の横幅いっぱい（100%）に広がる */
+    }
+    .myImg {
+      width: 50%; /*親要素(.myContainer)の幅の半分 */
+    }
+    .txtBlock {
+      margin-left: 10px;
+    }
+</style>
+</head>
+<body>
+    <div class="myContainer">
+        <img class="myImg" src="res/pic/beautiful-landscape-mountain-fuji.jpg">
+        <div class="txtBlock">
+          <h2>画像と説明文を横並びにする</h2>
+          <p>左右に画像とテキストを配置するレイアウトは良く登場するレイアウトです。<br/>
+          たくさん練習して横並びのレイアウトに慣れましょう宇</p>
+        </div>
+    </div>
+</body>
+</html>
