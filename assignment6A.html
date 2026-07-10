@@ -1,0 +1,67 @@
+<!-- 下は、先生のLINEから取ったコードのままです 
+まず、HTMLのツリー構造を見てみましょうね
+ .bg
+    .flexBox 
+        .flexBox__left
+            .flexBox__img
+        .flexBox__right
+            .flexBox__topic
+            .flexBox__txt
+今の表示効果を確認してみましょうね
+  .flexBoxは　普通のDivなので、display:block相当、後　DIVはBlock要素なので、デフォルトで一行を取る
+  なので、「画像と説明文を横並びにする」の段落は　.flexBox__leftの下に表示されました
+
+  じゃあ、「画像と説明文を横並びにする」の段落を右側に表示するために、親のタブ .flexBoxは display:flexにする必要だね　追加してみよう
+    →表示効果は、変だね
+      じゃあ、どこか悪いのかを調査してみよう
+      先見たか、右側F12のウインドに小さな「flex」アイコン　　それをクリックしたら、左側の画面がFlexの分布の枠を表示できます
+        .flexBoxは、画面上　二つの要素を横並びに並びます　　ただ、長さは我々の要求になっていないですね　→調整しよう
+        まず、 .flexBox__left の長さを調整する必要ですね →調整OK
+        でも、まだ問題がある　画像が小さく表示してる　　→大きくにしよう　　原因は .flexBox__img の幅は50% に設定してしまったね
+        先は、F12のDebugウインドで直接修正したので、直ちに見れますけど　F5を押したら、なくなる、保存してないから　　でも、一時の効果を確認・試しするには　非常に便利
+          →効果を確認したので、ソースコードで変更しましたね
+          .flexBox__imgのcssを変更したら、良くなったね　けど、まだ要求に満たされていません　右側の文字が左に寄ってしまっていますから
+            →調整しよう 見つけた： .flexBox__right　の padding-leftだね、これを大きくにすればいい
+            これで、文字段落の水平位置を調整できましたね  見つけた .flexBox の align-items: center に設定すればいいだ
+        はい、これで完成、かな！
+
+-->
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>assignment6</title>
+<style>
+  .flexBox {
+    display: flex;
+    align-items: center;
+  }
+  .flexBox__img{
+    width: 100%;
+    box-sizing: border-box;
+    /* padding: 20px; これが邪魔 削除するか、コメントアウトしますね */
+    display: flex;
+    justify-content: flex-start; /* 実はこの辺の設定は、あまり役に立たないと思う、まあ、残しってもいいけど */
+    align-items: flex-start; /* 実はこの辺の設定は、あまり役に立たないと思う、まあ、残しってもいいけど 削除しても　表示は変わらないはず */
+  }
+  .flexBox__left {
+    width: 50%; /*調整できましたね */
+    /* 確認するには、背景の色を付けたら、見やすくなります、こんな感じ */
+    background-color: rgb(238, 238, 238);
+  }
+  .flexBox__right {
+    padding-left: 20px;
+  }
+</style>
+</head>
+<body>
+    <h2>課題06：画像とテキストの横並び</h2>
+    <div class="bg">
+        <div class="flexBox">
+            <div class="flexBox__left">
+                <img class="flexBox__img" src="res/pic/beautiful-landscape-mountain-fuji.jpg" alt="画像">
+            </div>
+            <div class="flexBox__right">
+                <h3 class="flexBox__topic">画像と説明文を横並びにする</h3>
+                <p class="flexBox__txt">左右に画像とテキストを配置するレイアウトは良く登場するレイアウトです。<br>
+                たくさん練習して横並びのレイアウトに慣れましょう。</p>
+            </div>
+        </div>
+</body>
+</html>
