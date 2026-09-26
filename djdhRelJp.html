@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大江大河I-人物関係図</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: rgba(22, 31, 49, 0.88);
+      --text-main: #f0f4f8;
+      --text-sub: #94a3b8;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      color: var(--text-main);
+    }
+
+    #viz {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* 右上詳細カード */
+    #infoCard {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 400px;
+      min-height: 120px; /* 固定的最小高度，防止切换抖动 */
+      padding: 18px;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      /* 布局调整：左右两栏布局 */
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    #infoCard.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 左侧文本内容容器 */
+    .card-body {
+      flex: 1;
+      min-width: 0; /* 防止溢出 */
+    }
+
+    #infoCard h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    #infoCard .tag {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: normal;
+      white-space: nowrap;
+    }
+
+    #infoCard p {
+      margin: 6px 0;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+
+    #infoCard p strong {
+      color: var(--text-main);
+    }
+
+    /* 右上角头像容器：防抖动与尺寸归一化 */
+    .carAvatarWrapper {
+      width: 120px;
+      height: 150px; /* w:h = 4:5 */
+      flex-shrink: 0; /* 绝对禁止被压缩 */
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+      /* border: 1.5px solid rgba(255, 255, 255, 0.15); */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .carAvatarWrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* 当没有图片时的首字母占位符 */
+    .carVatarPlaceholder {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--text-sub);
+      display: none;
+    }
+
+    /* 左下凡例 */
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: var(--card-bg);
+      backdrop-filter: blur(8px);
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      gap: 16px;
+      font-size: 0.85rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    /* SVG スタイル */
+    .link {
+      stroke-opacity: 0.45;
+      transition: stroke-opacity 0.3s, stroke-width 0.3s;
+    }
+
+    .cLinkLabel {
+      font-size: 12px;
+      fill: #ffb951;
+      text-anchor: middle;
+      pointer-events: none;
+      dominant-baseline: text-bottom;
+      transition: opacity 0.3s;
+      transform: translate(200, 0),
+    }
+
+    .node {
+      cursor: pointer;
+    }
+
+    .node circle.avatar-border {
+      transition: transform 0.3s ease, stroke-width 0.3s ease, filter 0.3s ease;
+    }
+
+    .node:hover circle.avatar-border {
+      transform: scale(1.12);
+      stroke-width: 4px;
+    }
+
+    .node text {
+      font-size: 13px;
+      fill: var(--text-main);
+      text-anchor: middle;
+      pointer-events: none;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,1);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viz"></div>
+
+  <!-- 人物詳細ポップアップ -->
+  <div id="infoCard">
+    <!-- 左侧文本 -->
+    <div class="card-body">
+      <h3 id="card-name">人物名 <span id="card-role" class="tag">役柄</span></h3>
+      <p><strong>経歴・身分：</strong><span id="card-identity">-</span></p>
+      <p><strong>所属グループ：</strong><span id="card-faction">-</span></p>
+    </div>
+    <!-- 右上头像框 -->
+    <div class="carAvatarWrapper" id="cadaVatarBox">
+      <img id="cardAvatar" src="" alt="头像" style="display: none;" />
+      <span id="carVatarPlaceholder" class="carVatarPlaceholder">-</span>
+    </div>
+  </div>
+
+  <!-- 凡例 -->
+  <div class="legend" id="legend"></div>
+
+  <script>
+    // 人物相関データ
+    const graphData = {
+      "nodes": [
+        { "id": "song_yunhui", "name": "宋运辉", "role": "主人公", "identity": "金州化工のエンジニア", "faction": "国営企業代表", "avatar": "pics/宋运辉.jpg" },
+        { "id": "song_yunping", "name": "宋运萍", "role": "重要人物", "identity": "宋运辉の姉、雷东宝の妻", "faction": "小雷村", "avatar": "pics/宋运萍.jpg" },
+        { "id": "song_jiageng", "name": "宋季庚", "role": "脇役", "identity": "宋运辉・宋运萍の父親", "faction": "宋家", "avatar": "pics/宋季庚.jpg" },
+        { "id": "cheng_kaiyan", "name": "程开颜", "role": "脇役", "identity": "宋运辉の妻、程厂长の娘", "faction": "金州工場", "avatar": "pics/程开颜.jpg" },
+        { "id": "cheng_changzhang", "name": "程厂长", "role": "脇役", "identity": "金州工場の幹部、程开颜の父", "faction": "金州工場", "avatar": "pics/程厂长.png" },
+        { "id": "xun_jianxiang", "name": "寻建祥", "role": "脇役", "identity": "金州工場の作業員、宋运辉の親友", "faction": "金州工場", "avatar": "pics/寻建祥.jpg" },
+        { "id": "shui_zishi", "name": "水书记", "role": "重要人物", "identity": "金州化工の最高責任者、宋运辉の恩師", "faction": "金州工場", "avatar": "pics/水书记.jpg" },
+        { "id": "yu_shanqing", "name": "虞山卿", "role": "重要人物", "identity": "宋运辉の大学の同級生、金州工場の営業エース", "faction": "金州工場", "avatar": "pics/虞山卿.jpg" },
+        { "id": "liu_zonggong", "name": "刘总工", "role": "脇役", "identity": "金州工場の最高技術責任者(技師長)", "faction": "金州工場", "avatar": "pics/刘总工.png" },
+        { "id": "fang_ping", "name": "方平", "role": "脇役", "identity": "金州工場の技術者、宋运辉のルームメイト・助手", "faction": "金州工場", "avatar": "pics/方平.jpg" },
+
+        { "id": "lei_dongbao", "name": "雷东宝", "role": "主人公", "identity": "小雷家村の党支部書記", "faction": "集団経済代表", "avatar": "pics/雷东宝.jpg" },
+        { "id": "shi_hongwei", "name": "史红伟", "role": "脇役", "identity": "小雷家村の幹部、レンガー工場長、雷东宝の側近", "faction": "小雷村", "avatar": "pics/史红伟.jpg" },
+        { "id": "lei_shigen", "name": "雷士根", "role": "脇役", "identity": "小雷家村幹部(村長)", "faction": "小雷村", "avatar": "pics/雷士根.jpg" },
+        { "id": "lei_zhengming", "name": "雷正明", "role": "脇役", "identity": "小雷家電線工場の工場長、技術幹部", "faction": "小雷村", "avatar": "pics/雷正明.jpg" },
+        { "id": "lao_wu", "name": "老五", "role": "脇役", "identity": "小雷家村の主要メンバー、雷东宝と一族の兄弟", "faction": "小雷村", "avatar": "pics/老五.jpg" },
+        { "id": "lei_zhongfu", "name": "雷忠富", "role": "脇役", "identity": "最初、村の養魚池を請け負ったが、後は小雷家養豚場責任者", "faction": "小雷村", "avatar": "pics/雷忠富.png" },
+        { "id": "si_bao", "name": "四宝", "role": "脇役", "identity": "雷东宝の従弟、「成事不足，败事有余」", "faction": "小雷村", "avatar": "pics/四宝.jpg" },
+        //{ "id": "lao_husun", "name": "老猢狲", "role": "脇役", "identity": "元・村支部書記、文革期間台頭して郷の要職に就くも、後ほど平住民へ格下げされ、冷酷非道で遣り口がえげつない。猢狲⇒サル、あだ名 サルは頭が良すぎると言われている", "faction": "小雷村", "avatar": "pics/雷忠富.jpg" },
+
+        { "id": "chen_pingyuan", "name": "陈平原", "role": "重要人物", "identity": "晋陵県 県知事", "faction": "地方政府", "avatar": "pics/陈平原.jpg" },
+        { "id": "lao_xu", "name": "老徐(徐县长)", "role": "重要人物", "identity": "元晋陵県書記、雷东宝の指導者・理解者", "faction": "地方政府", "avatar": "pics/老徐.jpg" },
+
+        { "id": "yang_xun", "name": "杨巡", "role": "主人公", "identity": "個人事業主、電気商品などの経営者", "faction": "民営経済代表", "avatar": "pics/杨巡.jpg" },
+        { "id": "dai_jiaofeng", "name": "戴娇凤", "role": "重要人物", "identity": "杨巡の恋人兼ビジネスパートナー", "faction": "個人事業主", "avatar": "pics/戴娇凤.jpg" },
+        { "id": "yang_mama", "name": "杨母", "role": "脇役", "identity": "杨巡の母親、村の婦人会主任", "faction": "杨家", "avatar": "pics/杨母.png" },
+        { "id": "xiao_bo", "name": "赵小波", "role": "脇役", "identity": "戴凤娇の求婚者、幹部の子弟", "faction": "社会関係", "avatar": "pics/赵小波.png" }
+      ],
+      "links": [
+        { "source": "song_yunhui", "target": "song_yunping", "relation": "姉弟", "detail": "非常に強い絆。姉は大学進学の枠を弟に譲る" },
+        { "source": "song_yunhui", "target": "song_jiageng", "relation": "父子", "detail": "幼少期、父親の政治的レッテル問題で苦労を共にする" },
+        { "source": "song_yunping", "target": "lei_dongbao", "relation": "夫婦", "detail": "雷东宝の妻、後に事故により他界" },
+        { "source": "song_yunhui", "target": "lei_dongbao", "relation": "義理の兄弟", "detail": "宋运辉は技術や政策の面で雷东宝をアドバイスする" },
+        { "source": "song_yunhui", "target": "cheng_kaiyan", "relation": "夫婦", "detail": "金州工場時代に結婚し、一人の娘を育てる" },
+        { "source": "song_yunhui", "target": "cheng_changzhang", "relation": "義父・婿", "detail": "政治的結婚の背景にある後援者と頼みの綱" },
+        { "source": "cheng_kaiyan", "target": "cheng_changzhang", "relation": "父娘", "detail": "程工場長は宋运辉を引き立てることで娘の幸せを図る" },
+        { "source": "song_yunhui", "target": "shui_zishi", "relation": "師弟・上下関係", "detail": "水書記は宋运辉に組織の立ち振る舞いと管理術を教える" },
+        { "source": "song_yunhui", "target": "xun_jianxiang", "relation": "親友", "detail": "性格は対照的だが固い絆で結ばれた無二の親友" },
+        { "source": "song_yunhui", "target": "yu_shanqing", "relation": "ライバル", "detail": "金州工場における技術と処世術のライバル" },
+        { "source": "song_yunhui", "target": "fang_ping", "relation": "部下・同僚", "detail": "金州工場での後輩" },
+        { "source": "song_yunhui", "target": "liu_zonggong", "relation": "上下関係", "detail": "技術派の先輩、当初は虞山卿寄りだったが後に宋を評価" },
+
+        { "source": "lei_dongbao", "target": "lei_shigen", "relation": "上下関係", "detail": "小雷家村の番頭役、慎重で実行力がある" },
+        { "source": "lei_dongbao", "target": "lei_zhengming", "relation": "上下関係", "detail": "電線工場の責任者、技術と野心を併せ持つ" },
+        { "source": "lei_dongbao", "target": "lao_xu", "relation": "恩師・後援者", "detail": "雷东宝に農村改革と多角経営の指針を与える" },
+        { "source": "lei_dongbao", "target": "chen_pingyuan", "relation": "利害関係・連携", "detail": "地方政府と集団企業の相互依存関係" },
+        { "source": "lei_dongbao", "target": "lao_wu", "relation": "上下関係", "detail": "小雷家村の安保責任者、杨巡の電線ビジネスが敗れた後、雷东宝に命令され、杨巡を手伝う" },
+        { "source": "lei_dongbao", "target": "shi_hongwei", "relation": "上下関係", "detail": "" },
+        { "source": "lei_dongbao", "target": "lei_zhongfu", "relation": "上下関係", "detail": "" },
+        { "source": "lei_dongbao", "target": "si_bao", "relation": "従兄弟", "detail": "" },
+        //{ "source": "lei_dongbao", "target": "lao_husun", "relation": "幹部・元幹部", "detail": "" },
+
+        { "source": "yang_xun", "target": "dai_jiaofeng", "relation": "恋人・相棒", "detail": "共に商売に励むが、信頼問題と家族の反対で破局" },
+        { "source": "yang_xun", "target": "yang_mama", "relation": "母子", "detail": "母は資金を工面して杨巡の起業を支える" },
+        { "source": "yang_xun", "target": "song_yunhui", "relation": "同郷・支援", "detail": "杨家は宋家に恩があり、宋运辉は事業のアドバイスを与える" },
+        { "source": "yang_xun", "target": "lei_dongbao", "relation": "取引相手", "detail": "小雷家の電線商品を販売、過去に寸尺不足でトラブルも" },
+        { "source": "dai_jiaofeng", "target": "xiao_bo", "relation": "求婚者", "detail": "趙小波の積極的なアプローチが杨巡との破局を加速" }
+      ]
+    };
+
+    // 1. 初期設定とカラーマッピング
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    const factionColors = {
+      "国営企業代表": "#3b82f6",
+      "集団経済代表": "#ef4444",
+      "民営経済代表": "#f59e0b",
+
+      "金州工場": "#60a5fa",
+      "小雷村": "#f87171",
+      "地方政府": "#10b981",
+      "個人事業主": "#fbbf24",
+      "宋家": "#a78bfa",
+      "杨家": "#fcd34d",
+
+      "社会関係": "#9ca3af"
+    };
+
+    // 凡例描画
+    const mainFactions = ["国営企業代表", "集団経済代表", "民営経済代表", "地方政府"];
+    const legendEl = d3.select("#legend");
+    mainFactions.forEach(f => {
+      legendEl.append("div").attr("class", "legend-item").html(`<div class="legend-dot" style="background:${factionColors[f]}"></div>${f}`);
+    });
+
+    // 2. SVG 作成 & ズーム機能設定
+    const svg = d3.select("#viz").append("svg").attr("width", width).attr("height", height);
+    const defs = svg.append("defs");
+
+    // ネオン発光フィルタ
+    const filter = defs.append("filter").attr("id", "glow");
+    filter.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "coloredBlur");
+    const feMerge = filter.append("feMerge");
+    feMerge.append("feMergeNode").attr("in", "coloredBlur");
+    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+    // 3. アバター画像のSVG Pattern（円形クロップ用）を動的に生成
+    graphData.nodes.forEach(node => {
+      if (node.avatar) {
+        const pattern = defs.append("pattern").attr("id", `avatar-${node.id}`).attr("width", 1).attr("height", 1).attr("patternContentUnits", "objectBoundingBox");
+        pattern.append("image").attr("href", node.avatar).attr("x", 0).attr("y", 0).attr("width", 1).attr("height", 1).attr("preserveAspectRatio", "xMidYMid slice");
+      }
+    });
+
+    const g = svg.append("g");
+    svg.call(d3.zoom().scaleExtent([0.3, 3]).on("zoom", (event) => g.attr("transform", event.transform)));
+
+    // 4. 力学シミュレーション
+    const simulation = d3.forceSimulation(graphData.nodes)
+      .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(185))
+      .force("charge", d3.forceManyBody().strength(-450))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collide", d3.forceCollide().radius(d => getRadius(d) + 36));
+
+    function getRadius(d) {
+      if (d.role === "主人公") return 36;
+      if (d.role === "重要人物") return 28;
+      return 22;
+    }
+
+    // 5. リンク（線）の描画
+    const link = g.append("g").selectAll("line").data(graphData.links).join("line").attr("class", "link").attr("stroke", "#334155").attr("stroke-width", 1.5);
+    const linkLabel = g.append("g").selectAll("text").data(graphData.links).join("text").attr("class", "cLinkLabel").text(d => d.relation);
+
+    // 6. ノード（人物）の描画
+    const node = g.append("g").selectAll(".node").data(graphData.nodes).join("g").attr("class", "node").call(drag(simulation));
+
+    // 背景円（画像がない場合の塗りつぶし）
+    node.append("circle").attr("r", d => getRadius(d)).attr("fill", d => factionColors[d.faction] || "#94a3b8");
+
+    // 画像アバター円（画像がある場合のみパターン適用）
+    node.filter(d => d.avatar).append("circle").attr("r", d => getRadius(d)).attr("fill", d => `url(#avatar-${d.id})`);
+
+    // 外枠リング（所属グループの色で発光）
+    node.append("circle").attr("class", "avatar-border").attr("r", d => getRadius(d)).attr("fill", "none")
+      .attr("stroke", d => factionColors[d.faction] || "#ffffff")
+      .attr("stroke-width", d => d.role === "主人公" ? 3.5 : 2)
+      .attr("filter", "url(#glow)");
+
+    // 名前ラベル
+    node.append("text").attr("dy", d => getRadius(d) + 16).text(d => d.name);
+
+    // 7. ホバーインタラクション
+    const infoCard = d3.select("#infoCard");
+    const cardAvatar = d3.select("#cardAvatar");
+    const cardPlaceholder = d3.select("#carVatarPlaceholder");
+    const cardAvatarBox = d3.select("#cadaVatarBox");
+
+    node.on("mouseover", (event, d) => {
+      const neighbors = new Set([d.id]);
+      link.style("stroke-opacity", l => {
+        if (l.source.id === d.id || l.target.id === d.id) {
+          neighbors.add(l.source.id);
+          neighbors.add(l.target.id);
+          return 0.3;
+        }
+        return 0.05;
+      }).style("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#60a5fa" : "#334155")
+        .style("stroke-width", l => (l.source.id === d.id || l.target.id === d.id) ? 2.5 : 1.5);
+
+      node.style("opacity", n => neighbors.has(n.id) ? 1 : 0.15);
+      linkLabel.style("opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0);
+
+      // 右上卡片数据更新
+      infoCard.classed("active", true);
+      d3.select("#card-name").html(`${d.name} <span class="tag" style="background:${factionColors[d.faction]}33; color:${factionColors[d.faction]}">${d.role}</span>`);
+      d3.select("#card-identity").text(d.identity);
+      d3.select("#card-faction").text(d.faction);
+
+      // 头像框颜色与所属阵营一致
+      cardAvatarBox.style("border-color", factionColors[d.faction] || "rgba(255, 255, 255, 0.15)");
+
+      // 更新图片/占位符逻辑
+      if (d.avatar) {
+        const avtA = d.avatar.split('.');
+        console.assert(avtA.length === 2, "avatar format error");
+        cardAvatar.attr("src", avtA[0] + 'f.' + avtA[1]).style("display", "block");
+        cardPlaceholder.style("display", "none");
+      } else {
+        cardAvatar.attr("src", "").style("display", "none");
+        cardPlaceholder.text(d.name.charAt(0)).style("display", "block");
+      }
+    })
+    .on("mouseout", () => {
+      link.style("stroke-opacity", 0.45).style("stroke", "#334155").style("stroke-width", 1.5);
+      node.style("opacity", 1);
+      linkLabel.style("opacity", 1);
+      infoCard.classed("active", false);
+    });
+
+    // 8. シミュレーション Tick
+    simulation.on("tick", () => {
+      link.attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+      linkLabel.attr("transform", d => { // 更新连线文本的位置和平行角度
+        const midX = (d.source.x + d.target.x) / 2; // 1. 计算中心点
+        const midY = (d.source.y + d.target.y) / 2;
+        let angle = Math.atan2(d.target.y - d.source.y, d.target.x - d.source.x) * (180 / Math.PI); // 2. 计算连线弧度与角度
+        if (angle > 90 || angle < -90) angle += 180; // 3. 优化阅读体验：如果角度超过 90 度或小于 -90 度，翻转 180 度，防止文字颠倒倒立
+        return `translate(${midX}, ${midY}) rotate(${angle})`; // 4. 应用平移与旋转
+      });
+      node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    // 9. ドラッグ処理
+    function drag(simulation) {
+      function dragstarted(event) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        event.subject.fx = event.subject.x;
+        event.subject.fy = event.subject.y;
+      }
+      
+      function dragged(event) {
+        event.subject.fx = event.x;
+        event.subject.fy = event.y;
+      }
+      
+      function dragended(event) {
+        if (!event.active) simulation.alphaTarget(0);
+        event.subject.fx = null;
+        event.subject.fy = null;
+      }
+      return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
+    }
+
+    // リサイズ対応
+    window.addEventListener('resize', () => {
+      svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
+      simulation.force("center", d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2)).restart();
+    });
+  </script>
+</body>
+</html>
